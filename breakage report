@@ -392,7 +392,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (savedLoc)  sel.value = savedLoc;
   if (savedName) document.getElementById('f-reporter').value = savedName;
 
-  if (CONFIG.SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxBqsZ7rPryVo1_uLLyUH9ONyJxspaWnODwXfr6NOY0JTyMRREXiBOEz7iE-H8qse7S/exec') {
+  if (!CONFIG.SCRIPT_URL || CONFIG.SCRIPT_URL.indexOf('script.google.com') === -1) {
     document.getElementById('warn-box').style.display = 'block';
   }
 });
