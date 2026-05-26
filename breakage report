@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breakage Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #F9F3E5;
+  --card:      #FFFFFF;
+  --primary:   #2B1810;
+  --accent:    #C8782A;
+  --accent-lt: #F3E3CA;
+  --muted:     #7A6248;
+  --border:    #E4D3B8;
+  --success:   #3A7A55;
+  --danger:    #B53A2A;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--primary);
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--primary);
+  padding: 20px 16px 18px;
+  text-align: center;
+}
+.hdr h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+.hdr p {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ── Screens ── */
+.page { display: none; max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+.page.on { display: block; }
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 22px 20px;
+}
+
+/* ── Form elements ── */
+.field { margin-bottom: 16px; }
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+input, select {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  color: var(--primary);
+  background: var(--bg);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.18s;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A6248' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 34px; }
+
+/* ── Buttons ── */
+.btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.1s;
+  letter-spacing: 0.2px;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #AE6520; }
+.btn-dark { background: var(--primary); color: #fff; margin-top: 4px; }
+.btn-dark:hover { background: #3D2215; }
+
+/* ── Back link ── */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Nunito', sans-serif;
+  margin-bottom: 18px;
+}
+
+/* ── Section title ── */
+.stitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 18px;
+}
+
+/* ── Manager link ── */
+.mgr-link {
+  text-align: center;
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.mgr-link button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+}
+
+/* ── PIN boxes ── */
+.pin-wrap { display: flex; gap: 10px; justify-content: center; margin: 22px 0; }
+.pin-box {
+  width: 58px;
+  height: 64px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--primary);
+  font-family: 'Nunito', sans-serif;
+  padding: 0;
+}
+.pin-box:focus { border-color: var(--accent); outline: none; }
+
+/* ── Stats row ── */
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: center;
+}
+.stat-n {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 34px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+}
+.stat-l { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; margin-top: 4px; }
+
+/* ── Filter chips ── */
+.chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip {
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.15s;
+}
+.chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── Reports table ── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  padding: 9px 10px;
+  background: var(--accent-lt);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+th:first-child { border-radius: 8px 0 0 8px; }
+th:last-child  { border-radius: 0 8px 8px 0; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-lt);
+  color: var(--accent);
+}
+
+/* ── Empty / loading ── */
+.empty { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 14px; }
+.spin {
+  width: 26px; height: 26px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin: 36px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--primary);
+  color: #fff;
+  padding: 11px 22px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  white-space: nowrap;
+  z-index: 999;
+}
+.toast.ok  { background: var(--success); }
+.toast.err { background: var(--danger); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Config warning ── */
+.warn-box {
+  background: #FFF8E1;
+  border: 1px solid #FFD54F;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: #7A5C00;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>Breakage Report</h1>
+  <p>Non-food item reporting</p>
+</div>
+
+<!-- ════════════ SUBMIT PAGE ════════════ -->
+<div class="page on" id="pg-submit">
+
+  <div id="warn-box" class="warn-box" style="display:none">
+    ⚠️ <strong>Setup needed:</strong> Open this file and replace
+    <code>https://script.google.com/macros/s/AKfycbxBqsZ7rPryVo1_uLLyUH9ONyJxspaWnODwXfr6NOY0JTyMRREXiBOEz7iE-H8qse7S/exec</code> with your Apps Script URL.
+    See <strong>README.md</strong> for instructions.
+  </div>
+
+  <div style="margin-bottom:18px">
+    <p style="font-size:13px;color:var(--muted);line-height:1.6">
+      Fill in the details below and tap <strong>Submit</strong>. Reports go directly to the manager's Google Sheet.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label>Location</label>
+      <select id="f-location">
+        <option value="">— Select your location —</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Your Name</label>
+      <input type="text" id="f-reporter" placeholder="e.g. Sarah" autocomplete="name">
+    </div>
+    <div class="field">
+      <label>Item Broken</label>
+      <input type="text" id="f-item" placeholder="e.g. Glass display shelf, Serving tray…">
+    </div>
+    <div class="field">
+      <label>Quantity</label>
+      <input type="number" id="f-qty" value="1" min="1">
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="field" style="margin-bottom:20px">
+      <label>Notes <span style="font-weight:500;text-transform:none;font-size:11px;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="f-notes" placeholder="Any extra details…">
+    </div>
+    <button class="btn btn-primary" id="submit-btn" onclick="submitReport()">Submit Report</button>
+  </div>
+
+  <div class="mgr-link">
+    <button onclick="showPIN()">🔐 Manager View</button>
+  </div>
+</div>
+
+<!-- ════════════ PIN PAGE ════════════ -->
+<div class="page" id="pg-pin">
+  <button class="back" onclick="show('pg-submit')">← Back</button>
+  <h2 class="stitle">Manager Access</h2>
+
+  <div class="card">
+    <p style="text-align:center;font-size:14px;color:var(--muted)">Enter your 4-digit PIN to view reports</p>
+    <div class="pin-wrap">
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p1" oninput="pNext(this,'p2')">
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p2" oninput="pNext(this,'p3')" onkeydown="pBack(this,'p1',event)">
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p3" oninput="pNext(this,'p4')" onkeydown="pBack(this,'p2',event)">
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p4" oninput="pNext(this,null)" onkeydown="pBack(this,'p3',event)">
+    </div>
+    <button class="btn btn-dark" id="pin-btn" onclick="verifyPIN()">Enter</button>
+  </div>
+</div>
+
+<!-- ════════════ REPORTS PAGE ════════════ -->
+<div class="page" id="pg-reports">
+  <button class="back" onclick="show('pg-submit')">← Back to Submit</button>
+  <h2 class="stitle">All Reports</h2>
+
+  <div class="stats" id="stats"></div>
+  <div class="chips" id="chips"></div>
+
+  <div class="card">
+    <div id="report-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ───────────────────────────────────────────
+   CONFIG  ← Update SCRIPT_URL after setup
+─────────────────────────────────────────── */
+const CONFIG = {
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxBqsZ7rPryVo1_uLLyUH9ONyJxspaWnODwXfr6NOY0JTyMRREXiBOEz7iE-H8qse7S/exec',
+  LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery']
+};
+
+/* ─── State ─── */
+let allRows    = [];
+let activeChip = 'All';
+
+/* ─── Init ─── */
+window.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('f-location');
+  CONFIG.LOCATIONS.forEach(l => {
+    const o = document.createElement('option');
+    o.value = o.textContent = l;
+    sel.appendChild(o);
+  });
+
+  document.getElementById('f-date').value = today();
+
+  const savedLoc  = localStorage.getItem('loc');
+  const savedName = localStorage.getItem('name');
+  if (savedLoc)  sel.value = savedLoc;
+  if (savedName) document.getElementById('f-reporter').value = savedName;
+
+  if (CONFIG.SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxBqsZ7rPryVo1_uLLyUH9ONyJxspaWnODwXfr6NOY0JTyMRREXiBOEz7iE-H8qse7S/exec') {
+    document.getElementById('warn-box').style.display = 'block';
+  }
+});
+
+/* ─── Routing ─── */
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+function showPIN() {
+  clearPIN();
+  show('pg-pin');
+  setTimeout(() => document.getElementById('p1').focus(), 80);
+}
+
+/* ─── PIN helpers ─── */
+function pNext(el, nextId) {
+  if (el.value.length === 1 && nextId) document.getElementById(nextId).focus();
+  if (!nextId && el.value.length === 1) verifyPIN();
+}
+function pBack(el, prevId, e) {
+  if (e.key === 'Backspace' && el.value === '') document.getElementById(prevId).focus();
+}
+function clearPIN() {
+  ['p1','p2','p3','p4'].forEach(id => document.getElementById(id).value = '');
+}
+function getPin() {
+  return ['p1','p2','p3','p4'].map(id => document.getElementById(id).value).join('');
+}
+
+/* ─── Verify PIN / Load reports ─── */
+async function verifyPIN() {
+  const pin = getPin();
+  if (pin.length < 4) { toast('Enter all 4 digits', 'err'); return; }
+
+  const btn = document.getElementById('pin-btn');
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(`${CONFIG.SCRIPT_URL}?action=getReports&pin=${encodeURIComponent(pin)}`);
+    const data = await res.json();
+
+    if (data.error) {
+      toast('Incorrect PIN', 'err');
+      clearPIN();
+      document.getElementById('p1').focus();
+    } else {
+      allRows    = data.rows || [];
+      activeChip = 'All';
+      renderReports();
+      show('pg-reports');
+    }
+  } catch (e) {
+    toast('Connection error — check your setup', 'err');
+  }
+
+  btn.textContent = 'Enter';
+  btn.disabled = false;
+}
+
+/* ─── Submit report ─── */
+async function submitReport() {
+  const location = document.getElementById('f-location').value;
+  const reporter = document.getElementById('f-reporter').value.trim();
+  const item     = document.getElementById('f-item').value.trim();
+  const qty      = document.getElementById('f-qty').value;
+  const date     = document.getElementById('f-date').value;
+  const notes    = document.getElementById('f-notes').value.trim();
+
+  if (!location) { toast('Please select your location', 'err'); return; }
+  if (!reporter) { toast('Please enter your name', 'err');      return; }
+  if (!item)     { toast('Please enter the broken item', 'err'); return; }
+  if (!qty || qty < 1) { toast('Quantity must be at least 1', 'err'); return; }
+
+  localStorage.setItem('loc',  location);
+  localStorage.setItem('name', reporter);
+
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = 'Submitting…';
+  btn.disabled    = true;
+
+  try {
+    const params = new URLSearchParams({ action:'submit', location, reporter, item, qty, date, notes });
+    const res    = await fetch(`${CONFIG.SCRIPT_URL}?${params}`);
+    const data   = await res.json();
+
+    if (data.success) {
+      toast('Report submitted ✓', 'ok');
+      document.getElementById('f-item').value  = '';
+      document.getElementById('f-qty').value   = '1';
+      document.getElementById('f-notes').value = '';
+      document.getElementById('f-date').value  = today();
+    } else {
+      toast('Submission failed — try again', 'err');
+    }
+  } catch (e) {
+    toast('Error — check your internet connection', 'err');
+  }
+
+  btn.textContent = 'Submit Report';
+  btn.disabled    = false;
+}
+
+/* ─── Render reports ─── */
+function renderReports() {
+  const todayStr = today();
+  const todayCt  = allRows.filter(r => r[0] === todayStr).length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-n">${allRows.length}</div>
+      <div class="stat-l">Total Reports</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n">${todayCt}</div>
+      <div class="stat-l">Today</div>
+    </div>`;
+
+  const filters = ['All', ...CONFIG.LOCATIONS];
+  document.getElementById('chips').innerHTML = filters.map(f =>
+    `<button class="chip ${activeChip === f ? 'on' : ''}" onclick="setChip('${f}')">${f}</button>`
+  ).join('');
+
+  const rows = activeChip === 'All'
+    ? allRows
+    : allRows.filter(r => r[1] === activeChip);
+
+  const sorted = [...rows].sort((a, b) => new Date(b[0]) - new Date(a[0]));
+  const body   = document.getElementById('report-body');
+
+  if (!sorted.length) {
+    body.innerHTML = `<div class="empty">No reports found for this filter.</div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Location</th><th>Reporter</th><th>Item</th><th>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map(r => `
+            <tr>
+              <td style="white-space:nowrap">${fmtDate(r[0])}</td>
+              <td><span class="badge">${r[1]}</span></td>
+              <td>${r[2]}</td>
+              <td>${r[3]}${r[5] ? `<br><span style="font-size:11px;color:var(--muted)">${r[5]}</span>` : ''}</td>
+              <td>${r[4]}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function setChip(f) { activeChip = f; renderReports(); }
+
+/* ─── Helpers ─── */
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function fmtDate(d) {
+  if (!d) return '';
+  try {
+    return new Date(d + 'T12:00:00').toLocaleDateString('en-ZA', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+  } catch { return d; }
+}
+
+let toastTm;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent  = msg;
+  el.className    = `toast ${type} show`;
+  clearTimeout(toastTm);
+  toastTm = setTimeout(() => el.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
