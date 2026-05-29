@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Breakage Report</title>
+<title>Reports</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -16,6 +16,8 @@
   --border:    #E4D3B8;
   --success:   #3A7A55;
   --danger:    #B53A2A;
+  --wastage:   #4A7A55;
+  --wastage-lt:#D6EDE0;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,6 +54,34 @@ body {
 .page { display: none; max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
 .page.on { display: block; }
 
+/* ── Type tab bar (Breakage / Wastage) ── */
+.type-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--border);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.type-tab {
+  padding: 11px 10px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+  transition: all 0.2s;
+  letter-spacing: 0.1px;
+}
+.type-tab.on {
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: 0 1px 6px rgba(44,24,16,0.12);
+}
+
 /* ── Card ── */
 .card {
   background: var(--card);
@@ -85,7 +115,12 @@ input, select {
   transition: border-color 0.18s;
 }
 input:focus, select:focus { outline: none; border-color: var(--accent); }
-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A6248' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 34px; }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A6248' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  padding-right: 34px;
+}
 
 /* ── Buttons ── */
 .btn {
@@ -103,6 +138,8 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .btn:active { transform: scale(0.98); }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: #AE6520; }
+.btn-primary.wastage { background: var(--wastage); }
+.btn-primary.wastage:hover { background: #3A6645; }
 .btn-dark { background: var(--primary); color: #fff; margin-top: 4px; }
 .btn-dark:hover { background: #3D2215; }
 
@@ -165,8 +202,35 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 }
 .pin-box:focus { border-color: var(--accent); outline: none; }
 
+/* ── Report type tabs (manager view) ── */
+.report-type-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--border);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.report-type-tab {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.report-type-tab.on {
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: 0 1px 6px rgba(44,24,16,0.12);
+}
+
 /* ── Stats row ── */
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .stat-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -181,6 +245,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   color: var(--accent);
   line-height: 1;
 }
+.stat-n.wastage { color: var(--wastage); }
 .stat-l { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; margin-top: 4px; }
 
 /* ── Filter chips ── */
@@ -212,11 +277,11 @@ th {
   text-transform: uppercase;
   color: var(--primary);
 }
+th.wastage-th { background: var(--wastage-lt); }
 th:first-child { border-radius: 8px 0 0 8px; }
 th:last-child  { border-radius: 0 8px 8px 0; }
 td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
 tr:last-child td { border-bottom: none; }
-
 .badge {
   display: inline-block;
   padding: 2px 7px;
@@ -226,18 +291,28 @@ tr:last-child td { border-bottom: none; }
   background: var(--accent-lt);
   color: var(--accent);
 }
+.badge.wastage { background: var(--wastage-lt); color: var(--wastage); }
+
+/* ── Divider ── */
+.section-divider {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 24px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 
 /* ── Empty / loading ── */
-.empty { text-align: center; padding: 36px 16px; color: var(--muted); font-size: 14px; }
-.spin {
-  width: 26px; height: 26px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-  margin: 36px auto;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 28px 16px; color: var(--muted); font-size: 14px; }
 
 /* ── Toast ── */
 .toast {
@@ -260,40 +335,21 @@ tr:last-child td { border-bottom: none; }
 .toast.ok  { background: var(--success); }
 .toast.err { background: var(--danger); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── Config warning ── */
-.warn-box {
-  background: #FFF8E1;
-  border: 1px solid #FFD54F;
-  border-radius: 10px;
-  padding: 11px 14px;
-  font-size: 13px;
-  color: #7A5C00;
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <h1>Breakage Report</h1>
-  <p>Non-food item reporting</p>
+  <h1>Motherdough Reports</h1>
+  <p>Breakage &amp; Wastage</p>
 </div>
 
 <!-- ════════════ SUBMIT PAGE ════════════ -->
 <div class="page on" id="pg-submit">
 
-  <div id="warn-box" class="warn-box" style="display:none">
-    ⚠️ <strong>Setup needed:</strong> Open this file and replace
-    <code>https://script.google.com/macros/s/AKfycbxBqsZ7rPryVo1_uLLyUH9ONyJxspaWnODwXfr6NOY0JTyMRREXiBOEz7iE-H8qse7S/exec</code> with your Apps Script URL.
-    See <strong>README.md</strong> for instructions.
-  </div>
-
-  <div style="margin-bottom:18px">
-    <p style="font-size:13px;color:var(--muted);line-height:1.6">
-      Fill in the details below and tap <strong>Submit</strong>. Reports go directly to the manager's Google Sheet.
-    </p>
+  <div class="type-tabs">
+    <button class="type-tab on" id="tab-breakage" onclick="setType('breakage')">🔧 Breakage</button>
+    <button class="type-tab"    id="tab-wastage"  onclick="setType('wastage')">🌾 Wastage</button>
   </div>
 
   <div class="card">
@@ -308,8 +364,8 @@ tr:last-child td { border-bottom: none; }
       <input type="text" id="f-reporter" placeholder="e.g. Sarah" autocomplete="name">
     </div>
     <div class="field">
-      <label>Item Broken</label>
-      <input type="text" id="f-item" placeholder="e.g. Glass display shelf, Serving tray…">
+      <label id="item-label">Item Broken</label>
+      <input type="text" id="f-item" placeholder="e.g. Display shelf, Serving tray…">
     </div>
     <div class="field">
       <label>Quantity</label>
@@ -335,7 +391,6 @@ tr:last-child td { border-bottom: none; }
 <div class="page" id="pg-pin">
   <button class="back" onclick="show('pg-submit')">← Back</button>
   <h2 class="stitle">Manager Access</h2>
-
   <div class="card">
     <p style="text-align:center;font-size:14px;color:var(--muted)">Enter your 4-digit PIN to view reports</p>
     <div class="pin-wrap">
@@ -353,9 +408,13 @@ tr:last-child td { border-bottom: none; }
   <button class="back" onclick="show('pg-submit')">← Back to Submit</button>
   <h2 class="stitle">All Reports</h2>
 
-  <div class="stats" id="stats"></div>
-  <div class="chips" id="chips"></div>
+  <div class="report-type-tabs">
+    <button class="report-type-tab on" id="rtab-breakage" onclick="setReportType('breakage')">🔧 Breakage</button>
+    <button class="report-type-tab"    id="rtab-wastage"  onclick="setReportType('wastage')">🌾 Wastage</button>
+  </div>
 
+  <div id="stats"></div>
+  <div class="chips" id="chips"></div>
   <div class="card">
     <div id="report-body"></div>
   </div>
@@ -364,17 +423,17 @@ tr:last-child td { border-bottom: none; }
 <div class="toast" id="toast"></div>
 
 <script>
-/* ───────────────────────────────────────────
-   CONFIG  ← Update SCRIPT_URL after setup
-─────────────────────────────────────────── */
+/* ─── CONFIG ─── */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxBqsZ7rPryVo1_uLLyUH9ONyJxspaWnODwXfr6NOY0JTyMRREXiBOEz7iE-H8qse7S/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyDzhu6H5f8oK-0YyKdwxoF2ewHlFQPbNaiZufpQ_qm2gmG-nfsVpRgwsmZ_Aue5aF5/exec',
   LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery']
 };
 
 /* ─── State ─── */
-let allRows    = [];
-let activeChip = 'All';
+let activeType       = 'breakage';
+let allRows          = [];
+let activeReportType = 'breakage';
+let activeChip       = 'All';
 
 /* ─── Init ─── */
 window.addEventListener('DOMContentLoaded', () => {
@@ -384,18 +443,25 @@ window.addEventListener('DOMContentLoaded', () => {
     o.value = o.textContent = l;
     sel.appendChild(o);
   });
-
   document.getElementById('f-date').value = today();
-
   const savedLoc  = localStorage.getItem('loc');
   const savedName = localStorage.getItem('name');
   if (savedLoc)  sel.value = savedLoc;
   if (savedName) document.getElementById('f-reporter').value = savedName;
-
-  if (!CONFIG.SCRIPT_URL || CONFIG.SCRIPT_URL.indexOf('script.google.com') === -1) {
-    document.getElementById('warn-box').style.display = 'block';
-  }
 });
+
+/* ─── Type switching (submit) ─── */
+function setType(type) {
+  activeType = type;
+  document.getElementById('tab-breakage').classList.toggle('on', type === 'breakage');
+  document.getElementById('tab-wastage').classList.toggle('on',  type === 'wastage');
+  document.getElementById('item-label').textContent = type === 'breakage' ? 'Item Broken' : 'Food Item / Product';
+  document.getElementById('f-item').placeholder = type === 'breakage'
+    ? 'e.g. Display shelf, Serving tray, Glass door…'
+    : 'e.g. Croissants, Sourdough loaf, Muffins…';
+  const btn = document.getElementById('submit-btn');
+  btn.classList.toggle('wastage', type === 'wastage');
+}
 
 /* ─── Routing ─── */
 function show(id) {
@@ -403,14 +469,13 @@ function show(id) {
   document.getElementById(id).classList.add('on');
   window.scrollTo(0, 0);
 }
-
 function showPIN() {
   clearPIN();
   show('pg-pin');
   setTimeout(() => document.getElementById('p1').focus(), 80);
 }
 
-/* ─── PIN helpers ─── */
+/* ─── PIN ─── */
 function pNext(el, nextId) {
   if (el.value.length === 1 && nextId) document.getElementById(nextId).focus();
   if (!nextId && el.value.length === 1) verifyPIN();
@@ -418,45 +483,35 @@ function pNext(el, nextId) {
 function pBack(el, prevId, e) {
   if (e.key === 'Backspace' && el.value === '') document.getElementById(prevId).focus();
 }
-function clearPIN() {
-  ['p1','p2','p3','p4'].forEach(id => document.getElementById(id).value = '');
-}
-function getPin() {
-  return ['p1','p2','p3','p4'].map(id => document.getElementById(id).value).join('');
-}
+function clearPIN() { ['p1','p2','p3','p4'].forEach(id => document.getElementById(id).value = ''); }
+function getPin()   { return ['p1','p2','p3','p4'].map(id => document.getElementById(id).value).join(''); }
 
-/* ─── Verify PIN / Load reports ─── */
 async function verifyPIN() {
   const pin = getPin();
   if (pin.length < 4) { toast('Enter all 4 digits', 'err'); return; }
-
   const btn = document.getElementById('pin-btn');
   btn.textContent = 'Checking…';
   btn.disabled = true;
-
   try {
     const res  = await fetch(`${CONFIG.SCRIPT_URL}?action=getReports&pin=${encodeURIComponent(pin)}`);
     const data = await res.json();
-
     if (data.error) {
       toast('Incorrect PIN', 'err');
       clearPIN();
       document.getElementById('p1').focus();
     } else {
-      allRows    = data.rows || [];
-      activeChip = 'All';
+      allRows          = data.rows || [];
+      activeReportType = 'breakage';
+      activeChip       = 'All';
       renderReports();
       show('pg-reports');
     }
-  } catch (e) {
-    toast('Connection error — check your setup', 'err');
-  }
-
+  } catch (e) { toast('Connection error — check your setup', 'err'); }
   btn.textContent = 'Enter';
   btn.disabled = false;
 }
 
-/* ─── Submit report ─── */
+/* ─── Submit ─── */
 async function submitReport() {
   const location = document.getElementById('f-location').value;
   const reporter = document.getElementById('f-reporter').value.trim();
@@ -466,8 +521,8 @@ async function submitReport() {
   const notes    = document.getElementById('f-notes').value.trim();
 
   if (!location) { toast('Please select your location', 'err'); return; }
-  if (!reporter) { toast('Please enter your name', 'err');      return; }
-  if (!item)     { toast('Please enter the broken item', 'err'); return; }
+  if (!reporter) { toast('Please enter your name', 'err');       return; }
+  if (!item)     { toast('Please enter the item', 'err');        return; }
   if (!qty || qty < 1) { toast('Quantity must be at least 1', 'err'); return; }
 
   localStorage.setItem('loc',  location);
@@ -478,10 +533,9 @@ async function submitReport() {
   btn.disabled    = true;
 
   try {
-    const params = new URLSearchParams({ action:'submit', location, reporter, item, qty, date, notes });
+    const params = new URLSearchParams({ action:'submit', type: activeType, location, reporter, item, qty, date, notes });
     const res    = await fetch(`${CONFIG.SCRIPT_URL}?${params}`);
     const data   = await res.json();
-
     if (data.success) {
       toast('Report submitted ✓', 'ok');
       document.getElementById('f-item').value  = '';
@@ -491,43 +545,54 @@ async function submitReport() {
     } else {
       toast('Submission failed — try again', 'err');
     }
-  } catch (e) {
-    toast('Error — check your internet connection', 'err');
-  }
+  } catch (e) { toast('Error — check your internet connection', 'err'); }
 
   btn.textContent = 'Submit Report';
   btn.disabled    = false;
 }
 
+/* ─── Report type switching (manager) ─── */
+function setReportType(type) {
+  activeReportType = type;
+  activeChip       = 'All';
+  document.getElementById('rtab-breakage').classList.toggle('on', type === 'breakage');
+  document.getElementById('rtab-wastage').classList.toggle('on',  type === 'wastage');
+  renderReports();
+}
+
 /* ─── Render reports ─── */
 function renderReports() {
-  const todayStr = today();
-  const todayCt  = allRows.filter(r => r[0] === todayStr).length;
+  const isWastage = activeReportType === 'wastage';
+  const typeRows  = allRows.filter(r => r[6] === activeReportType);
 
+  // Stats
+  const todayStr  = today();
+  const todayCt   = typeRows.filter(r => r[0] === todayStr).length;
   document.getElementById('stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-n">${allRows.length}</div>
-      <div class="stat-l">Total Reports</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-n">${todayCt}</div>
-      <div class="stat-l">Today</div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-n ${isWastage ? 'wastage' : ''}">${typeRows.length}</div>
+        <div class="stat-l">Total ${isWastage ? 'Wastage' : 'Breakage'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-n ${isWastage ? 'wastage' : ''}">${todayCt}</div>
+        <div class="stat-l">Today</div>
+      </div>
     </div>`;
 
+  // Location chips
   const filters = ['All', ...CONFIG.LOCATIONS];
   document.getElementById('chips').innerHTML = filters.map(f =>
     `<button class="chip ${activeChip === f ? 'on' : ''}" onclick="setChip('${f}')">${f}</button>`
   ).join('');
 
-  const rows = activeChip === 'All'
-    ? allRows
-    : allRows.filter(r => r[1] === activeChip);
-
-  const sorted = [...rows].sort((a, b) => new Date(b[0]) - new Date(a[0]));
-  const body   = document.getElementById('report-body');
+  // Filter by location
+  const filtered = activeChip === 'All' ? typeRows : typeRows.filter(r => r[1] === activeChip);
+  const sorted   = [...filtered].sort((a, b) => new Date(b[0]) - new Date(a[0]));
+  const body     = document.getElementById('report-body');
 
   if (!sorted.length) {
-    body.innerHTML = `<div class="empty">No reports found for this filter.</div>`;
+    body.innerHTML = `<div class="empty">No ${isWastage ? 'wastage' : 'breakage'} reports found.</div>`;
     return;
   }
 
@@ -536,14 +601,18 @@ function renderReports() {
       <table>
         <thead>
           <tr>
-            <th>Date</th><th>Location</th><th>Reporter</th><th>Item</th><th>Qty</th>
+            <th class="${isWastage ? 'wastage-th' : ''}">Date</th>
+            <th class="${isWastage ? 'wastage-th' : ''}">Location</th>
+            <th class="${isWastage ? 'wastage-th' : ''}">Reporter</th>
+            <th class="${isWastage ? 'wastage-th' : ''}">${isWastage ? 'Item / Product' : 'Item Broken'}</th>
+            <th class="${isWastage ? 'wastage-th' : ''}">Qty</th>
           </tr>
         </thead>
         <tbody>
           ${sorted.map(r => `
             <tr>
               <td style="white-space:nowrap">${fmtDate(r[0])}</td>
-              <td><span class="badge">${r[1]}</span></td>
+              <td><span class="badge ${isWastage ? 'wastage' : ''}">${r[1]}</span></td>
               <td>${r[2]}</td>
               <td>${r[3]}${r[5] ? `<br><span style="font-size:11px;color:var(--muted)">${r[5]}</span>` : ''}</td>
               <td>${r[4]}</td>
@@ -557,21 +626,16 @@ function setChip(f) { activeChip = f; renderReports(); }
 
 /* ─── Helpers ─── */
 function today() { return new Date().toISOString().split('T')[0]; }
-
 function fmtDate(d) {
   if (!d) return '';
-  try {
-    return new Date(d + 'T12:00:00').toLocaleDateString('en-ZA', {
-      day: 'numeric', month: 'short', year: 'numeric'
-    });
-  } catch { return d; }
+  try { return new Date(d + 'T12:00:00').toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' }); }
+  catch { return d; }
 }
-
 let toastTm;
 function toast(msg, type) {
   const el = document.getElementById('toast');
-  el.textContent  = msg;
-  el.className    = `toast ${type} show`;
+  el.textContent = msg;
+  el.className   = `toast ${type} show`;
   clearTimeout(toastTm);
   toastTm = setTimeout(() => el.classList.remove('show'), 3200);
 }
