@@ -367,7 +367,19 @@ tr:last-child td { border-bottom: none; }
       <label id="item-label">Item Broken</label>
       <input type="text" id="f-item" placeholder="e.g. Display shelf, Serving tray…">
     </div>
-    <div class="field">
+    <div id="qty-wrap-wastage" style="display:none; margin-bottom:16px">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:6px">Quantity &amp; Unit</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <input type="number" id="f-qty-wastage" value="1" min="1" placeholder="e.g. 500">
+        <select id="f-unit">
+          <option value="grams">grams</option>
+          <option value="kg">kg</option>
+          <option value="ml">ml</option>
+          <option value="litre">litre</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" id="qty-wrap-breakage">
       <label>Quantity</label>
       <input type="number" id="f-qty" value="1" min="1">
     </div>
@@ -425,7 +437,7 @@ tr:last-child td { border-bottom: none; }
 <script>
 /* ─── CONFIG ─── */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyDzhu6H5f8oK-0YyKdwxoF2ewHlFQPbNaiZufpQ_qm2gmG-nfsVpRgwsmZ_Aue5aF5/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbznxF96M36LV-ImWk6iFWjbCRBw0pdiYkJwp4IBTK_vbyLpjD1KfJyKBPHrFn5kqVK-/exec',
   LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery']
 };
 
@@ -459,6 +471,9 @@ function setType(type) {
   document.getElementById('f-item').placeholder = type === 'breakage'
     ? 'e.g. Display shelf, Serving tray, Glass door…'
     : 'e.g. Croissants, Sourdough loaf, Muffins…';
+  // Show/hide quantity fields
+  document.getElementById('qty-wrap-breakage').style.display = type === 'breakage' ? 'block' : 'none';
+  document.getElementById('qty-wrap-wastage').style.display  = type === 'wastage'  ? 'block' : 'none';
   const btn = document.getElementById('submit-btn');
   btn.classList.toggle('wastage', type === 'wastage');
 }
@@ -516,7 +531,11 @@ async function submitReport() {
   const location = document.getElementById('f-location').value;
   const reporter = document.getElementById('f-reporter').value.trim();
   const item     = document.getElementById('f-item').value.trim();
-  const qty      = document.getElementById('f-qty').value;
+  const isWastage = activeType === 'wastage';
+  const qty      = isWastage
+    ? document.getElementById('f-qty-wastage').value
+    : document.getElementById('f-qty').value;
+  const unit     = isWastage ? document.getElementById('f-unit').value : '';
   const date     = document.getElementById('f-date').value;
   const notes    = document.getElementById('f-notes').value.trim();
 
@@ -533,15 +552,16 @@ async function submitReport() {
   btn.disabled    = true;
 
   try {
-    const params = new URLSearchParams({ action:'submit', type: activeType, location, reporter, item, qty, date, notes });
+    const params = new URLSearchParams({ action:'submit', type: activeType, location, reporter, item, qty, unit, date, notes });
     const res    = await fetch(`${CONFIG.SCRIPT_URL}?${params}`);
     const data   = await res.json();
     if (data.success) {
       toast('Report submitted ✓', 'ok');
-      document.getElementById('f-item').value  = '';
-      document.getElementById('f-qty').value   = '1';
-      document.getElementById('f-notes').value = '';
-      document.getElementById('f-date').value  = today();
+      document.getElementById('f-item').value      = '';
+      document.getElementById('f-qty').value       = '1';
+      document.getElementById('f-qty-wastage').value = '1';
+      document.getElementById('f-notes').value     = '';
+      document.getElementById('f-date').value      = today();
     } else {
       toast('Submission failed — try again', 'err');
     }
@@ -563,7 +583,7 @@ function setReportType(type) {
 /* ─── Render reports ─── */
 function renderReports() {
   const isWastage = activeReportType === 'wastage';
-  const typeRows  = allRows.filter(r => r[6] === activeReportType);
+  const typeRows  = allRows.filter(r => r[7] === activeReportType);
 
   // Stats
   const todayStr  = today();
@@ -605,7 +625,7 @@ function renderReports() {
             <th class="${isWastage ? 'wastage-th' : ''}">Location</th>
             <th class="${isWastage ? 'wastage-th' : ''}">Reporter</th>
             <th class="${isWastage ? 'wastage-th' : ''}">${isWastage ? 'Item / Product' : 'Item Broken'}</th>
-            <th class="${isWastage ? 'wastage-th' : ''}">Qty</th>
+            <th class="${isWastage ? 'wastage-th' : ''}">${isWastage ? 'Qty &amp; Unit' : 'Qty'}</th>
           </tr>
         </thead>
         <tbody>
@@ -614,8 +634,8 @@ function renderReports() {
               <td style="white-space:nowrap">${fmtDate(r[0])}</td>
               <td><span class="badge ${isWastage ? 'wastage' : ''}">${r[1]}</span></td>
               <td>${r[2]}</td>
-              <td>${r[3]}${r[5] ? `<br><span style="font-size:11px;color:var(--muted)">${r[5]}</span>` : ''}</td>
-              <td>${r[4]}</td>
+              <td>${r[3]}${r[6] ? `<br><span style="font-size:11px;color:var(--muted)">${r[6]}</span>` : ''}</td>
+              <td>${r[4]}${r[5] ? ' ' + r[5] : ''}</td>
             </tr>`).join('')}
         </tbody>
       </table>
