@@ -388,15 +388,10 @@ tr:last-child td { border-bottom: none; }
       <input type="text" id="f-reporter" placeholder="e.g. Sarah" autocomplete="name">
     </div>
 
-    <!-- Breakage item: dropdown + Other -->
+    <!-- Breakage item: free text -->
     <div class="field" id="item-wrap-breakage">
       <label>Item Broken</label>
-      <select id="f-item-select">
-        <option value="">— Select item —</option>
-      </select>
-      <div id="item-other-wrap" style="display:none; margin-top:10px">
-        <input type="text" id="f-item-other" placeholder="Type item name">
-      </div>
+      <input type="text" id="f-item-breakage" placeholder="e.g. Display shelf, Serving tray, Glass door…">
     </div>
 
     <!-- Wastage item: free text -->
@@ -476,13 +471,10 @@ tr:last-child td { border-bottom: none; }
 <div class="toast" id="toast"></div>
 
 <script>
-/* ─── CONFIG ───
-   To add/remove non-food items for the Stock list & Breakage dropdown,
-   just edit the ITEMS array below. */
+/* ─── CONFIG ─── */
 const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyXgICeRg-B3ZyxPBxuhLMgliuzFqp88mWMVgkV9Duh5YUeruXRkI-Z_KdQjUsWmibR/exec',
-  LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery'],
-  ITEMS:      ['Serving tray', 'Display shelf', 'Glass door', 'Chair', 'Table']
+  LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery']
 };
 
 /* ─── State ─── */
@@ -504,32 +496,13 @@ window.addEventListener('DOMContentLoaded', () => {
     sel.appendChild(o);
   });
 
-  populateItemSelect();
-
   document.getElementById('f-date').value = today();
   const savedLoc  = localStorage.getItem('loc');
   const savedName = localStorage.getItem('name');
   if (savedLoc)  sel.value = savedLoc;
   if (savedName) document.getElementById('f-reporter').value = savedName;
 
-  document.getElementById('f-item-select').addEventListener('change', function () {
-    document.getElementById('item-other-wrap').style.display = this.value === '__other__' ? 'block' : 'none';
-  });
 });
-
-function populateItemSelect() {
-  const sel = document.getElementById('f-item-select');
-  sel.innerHTML = '<option value="">— Select item —</option>';
-  CONFIG.ITEMS.forEach(it => {
-    const o = document.createElement('option');
-    o.value = o.textContent = it;
-    sel.appendChild(o);
-  });
-  const other = document.createElement('option');
-  other.value = '__other__';
-  other.textContent = 'Other (type below)';
-  sel.appendChild(other);
-}
 
 /* ─── Type switching (submit) ─── */
 function setType(type) {
@@ -608,10 +581,7 @@ async function submitReport() {
   if (isWastage) {
     item = document.getElementById('f-item-wastage').value.trim();
   } else {
-    const selVal = document.getElementById('f-item-select').value;
-    item = selVal === '__other__'
-      ? document.getElementById('f-item-other').value.trim()
-      : selVal;
+    item = document.getElementById('f-item-breakage').value.trim();
   }
 
   const qty   = isWastage
@@ -643,9 +613,7 @@ async function submitReport() {
         document.getElementById('f-item-wastage').value  = '';
         document.getElementById('f-qty-wastage').value   = '1';
       } else {
-        document.getElementById('f-item-select').value = '';
-        document.getElementById('f-item-other').value  = '';
-        document.getElementById('item-other-wrap').style.display = 'none';
+        document.getElementById('f-item-breakage').value = '';
         document.getElementById('f-qty').value = '1';
       }
       document.getElementById('f-notes').value = '';
@@ -772,8 +740,7 @@ async function loadStock(location) {
 }
 
 function renderStock(location) {
-  const items = [...CONFIG.ITEMS];
-  Object.keys(stockDataMap).forEach(it => { if (!items.includes(it)) items.push(it); });
+  const items = Object.keys(stockDataMap);
   stockItemsList = items;
 
   let tracked = 0, total = 0;
@@ -797,8 +764,8 @@ function renderStock(location) {
     </div>`;
 
   const body = document.getElementById('report-body');
-  body.innerHTML = `
-    <p class="stock-note">Stock levels drop automatically when breakages are reported. Enter the actual count below and tap <strong>Save Stock Take</strong> to correct any item.</p>
+
+  const tableHtml = items.length ? `
     <div class="tbl-wrap">
       <table>
         <thead>
@@ -817,8 +784,17 @@ function renderStock(location) {
             </tr>`).join('')}
         </tbody>
       </table>
+    </div>` : `<div class="empty">No stock items yet for ${location}. Add one below.</div>`;
+
+  body.innerHTML = `
+    <p class="stock-note">Stock levels drop automatically when breakages are reported. Enter the actual count below and tap <strong>Save Stock Take</strong> to correct any item.</p>
+    ${tableHtml}
+    <div class="section-divider">Add Item</div>
+    <div style="display:grid;grid-template-columns:1fr 90px;gap:10px;margin-bottom:14px">
+      <input type="text" id="new-stock-item" placeholder="Item name">
+      <input type="number" id="new-stock-count" min="0" placeholder="Count">
     </div>
-    <button class="btn btn-dark" style="margin-top:14px" onclick="saveStockTake('${location}')">Save Stock Take</button>
+    <button class="btn btn-dark" style="margin-top:0" onclick="saveStockTake('${location}')">Save Stock Take</button>
   `;
 }
 
@@ -828,6 +804,13 @@ async function saveStockTake(location) {
     const el = document.getElementById(`stock-${i}`);
     if (el && el.value !== '') items.push({ item: it, count: el.value });
   });
+
+  const newItemEl  = document.getElementById('new-stock-item');
+  const newCountEl = document.getElementById('new-stock-count');
+  if (newItemEl && newItemEl.value.trim() && newCountEl.value !== '') {
+    items.push({ item: newItemEl.value.trim(), count: newCountEl.value });
+  }
+
   if (!items.length) { toast('Enter at least one count', 'err'); return; }
 
   try {
