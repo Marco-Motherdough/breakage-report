@@ -18,6 +18,8 @@
   --danger:    #B53A2A;
   --wastage:   #4A7A55;
   --wastage-lt:#D6EDE0;
+  --stock:     #3A5A7A;
+  --stock-lt:  #D9E4ED;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -205,18 +207,19 @@ select {
 /* ── Report type tabs (manager view) ── */
 .report-type-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   background: var(--border);
   border-radius: 14px;
   padding: 4px;
   margin-bottom: 16px;
+  gap: 2px;
 }
 .report-type-tab {
-  padding: 10px;
+  padding: 10px 4px;
   border: none;
   border-radius: 10px;
   font-family: 'Nunito', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   background: transparent;
@@ -246,6 +249,7 @@ select {
   line-height: 1;
 }
 .stat-n.wastage { color: var(--wastage); }
+.stat-n.stock { color: var(--stock); }
 .stat-l { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; margin-top: 4px; }
 
 /* ── Filter chips ── */
@@ -278,6 +282,7 @@ th {
   color: var(--primary);
 }
 th.wastage-th { background: var(--wastage-lt); }
+th.stock-th { background: var(--stock-lt); }
 th:first-child { border-radius: 8px 0 0 8px; }
 th:last-child  { border-radius: 0 8px 8px 0; }
 td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -292,6 +297,25 @@ tr:last-child td { border-bottom: none; }
   color: var(--accent);
 }
 .badge.wastage { background: var(--wastage-lt); color: var(--wastage); }
+
+/* ── Stock input ── */
+.stock-input {
+  width: 64px;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+  background: var(--bg);
+  font-family: 'Nunito', sans-serif;
+}
+.stock-input:focus { outline: none; border-color: var(--stock); }
+.stock-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
 
 /* ── Divider ── */
 .section-divider {
@@ -363,10 +387,24 @@ tr:last-child td { border-bottom: none; }
       <label>Your Name</label>
       <input type="text" id="f-reporter" placeholder="e.g. Sarah" autocomplete="name">
     </div>
-    <div class="field">
-      <label id="item-label">Item Broken</label>
-      <input type="text" id="f-item" placeholder="e.g. Display shelf, Serving tray…">
+
+    <!-- Breakage item: dropdown + Other -->
+    <div class="field" id="item-wrap-breakage">
+      <label>Item Broken</label>
+      <select id="f-item-select">
+        <option value="">— Select item —</option>
+      </select>
+      <div id="item-other-wrap" style="display:none; margin-top:10px">
+        <input type="text" id="f-item-other" placeholder="Type item name">
+      </div>
     </div>
+
+    <!-- Wastage item: free text -->
+    <div class="field" id="item-wrap-wastage" style="display:none">
+      <label>Food Item / Product</label>
+      <input type="text" id="f-item-wastage" placeholder="e.g. Croissants, Sourdough loaf, Muffins…">
+    </div>
+
     <div id="qty-wrap-wastage" style="display:none; margin-bottom:16px">
       <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:6px">Quantity &amp; Unit</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -384,6 +422,7 @@ tr:last-child td { border-bottom: none; }
       <label>Quantity</label>
       <input type="number" id="f-qty" value="1" min="1">
     </div>
+
     <div class="field">
       <label>Date</label>
       <input type="date" id="f-date">
@@ -424,6 +463,7 @@ tr:last-child td { border-bottom: none; }
   <div class="report-type-tabs">
     <button class="report-type-tab on" id="rtab-breakage" onclick="setReportType('breakage')">🔧 Breakage</button>
     <button class="report-type-tab"    id="rtab-wastage"  onclick="setReportType('wastage')">🌾 Wastage</button>
+    <button class="report-type-tab"    id="rtab-stock"    onclick="setReportType('stock')">📦 Stock</button>
   </div>
 
   <div id="stats"></div>
@@ -436,17 +476,24 @@ tr:last-child td { border-bottom: none; }
 <div class="toast" id="toast"></div>
 
 <script>
-/* ─── CONFIG ─── */
+/* ─── CONFIG ───
+   To add/remove non-food items for the Stock list & Breakage dropdown,
+   just edit the ITEMS array below. */
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyfln0KC2eH-MWBmG2gV3cH3qzuzxuj8_HfBjNgxx79nFGYb4VOm00q1Z1SPOa5x5c/exec',
-  LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery']
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyXgICeRg-B3ZyxPBxuhLMgliuzFqp88mWMVgkV9Duh5YUeruXRkI-Z_KdQjUsWmibR/exec',
+  LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery'],
+  ITEMS:      ['Serving tray', 'Display shelf', 'Glass door', 'Chair', 'Table']
 };
 
 /* ─── State ─── */
-let activeType       = 'breakage';
-let allRows          = [];
-let activeReportType = 'breakage';
-let activeChip       = 'All';
+let activeType         = 'breakage';
+let allRows            = [];
+let activeReportType   = 'breakage';
+let activeChip         = 'All';
+let currentPin         = '';
+let activeStockLocation = null;
+let stockItemsList     = [];
+let stockDataMap       = {};
 
 /* ─── Init ─── */
 window.addEventListener('DOMContentLoaded', () => {
@@ -456,22 +503,43 @@ window.addEventListener('DOMContentLoaded', () => {
     o.value = o.textContent = l;
     sel.appendChild(o);
   });
+
+  populateItemSelect();
+
   document.getElementById('f-date').value = today();
   const savedLoc  = localStorage.getItem('loc');
   const savedName = localStorage.getItem('name');
   if (savedLoc)  sel.value = savedLoc;
   if (savedName) document.getElementById('f-reporter').value = savedName;
+
+  document.getElementById('f-item-select').addEventListener('change', function () {
+    document.getElementById('item-other-wrap').style.display = this.value === '__other__' ? 'block' : 'none';
+  });
 });
+
+function populateItemSelect() {
+  const sel = document.getElementById('f-item-select');
+  sel.innerHTML = '<option value="">— Select item —</option>';
+  CONFIG.ITEMS.forEach(it => {
+    const o = document.createElement('option');
+    o.value = o.textContent = it;
+    sel.appendChild(o);
+  });
+  const other = document.createElement('option');
+  other.value = '__other__';
+  other.textContent = 'Other (type below)';
+  sel.appendChild(other);
+}
 
 /* ─── Type switching (submit) ─── */
 function setType(type) {
   activeType = type;
   document.getElementById('tab-breakage').classList.toggle('on', type === 'breakage');
   document.getElementById('tab-wastage').classList.toggle('on',  type === 'wastage');
-  document.getElementById('item-label').textContent = type === 'breakage' ? 'Item Broken' : 'Food Item / Product';
-  document.getElementById('f-item').placeholder = type === 'breakage'
-    ? 'e.g. Display shelf, Serving tray, Glass door…'
-    : 'e.g. Croissants, Sourdough loaf, Muffins…';
+
+  document.getElementById('item-wrap-breakage').style.display = type === 'breakage' ? 'block' : 'none';
+  document.getElementById('item-wrap-wastage').style.display  = type === 'wastage'  ? 'block' : 'none';
+
   // Show/hide quantity fields
   document.getElementById('qty-wrap-breakage').style.display = type === 'breakage' ? 'block' : 'none';
   document.getElementById('qty-wrap-wastage').style.display  = type === 'wastage'  ? 'block' : 'none';
@@ -516,9 +584,12 @@ async function verifyPIN() {
       clearPIN();
       document.getElementById('p1').focus();
     } else {
+      currentPin       = pin;
       allRows          = data.rows || [];
       activeReportType = 'breakage';
       activeChip       = 'All';
+      activeStockLocation = null;
+      renderChips();
       renderReports();
       show('pg-reports');
     }
@@ -531,18 +602,28 @@ async function verifyPIN() {
 async function submitReport() {
   const location = document.getElementById('f-location').value;
   const reporter = document.getElementById('f-reporter').value.trim();
-  const item     = document.getElementById('f-item').value.trim();
   const isWastage = activeType === 'wastage';
-  const qty      = isWastage
+
+  let item;
+  if (isWastage) {
+    item = document.getElementById('f-item-wastage').value.trim();
+  } else {
+    const selVal = document.getElementById('f-item-select').value;
+    item = selVal === '__other__'
+      ? document.getElementById('f-item-other').value.trim()
+      : selVal;
+  }
+
+  const qty   = isWastage
     ? document.getElementById('f-qty-wastage').value
     : document.getElementById('f-qty').value;
-  const unit     = isWastage ? document.getElementById('f-unit').value : '';
-  const date     = document.getElementById('f-date').value;
-  const notes    = document.getElementById('f-notes').value.trim();
+  const unit  = isWastage ? document.getElementById('f-unit').value : '';
+  const date  = document.getElementById('f-date').value;
+  const notes = document.getElementById('f-notes').value.trim();
 
   if (!location) { toast('Please select your location', 'err'); return; }
   if (!reporter) { toast('Please enter your name', 'err');       return; }
-  if (!item)     { toast('Please enter the item', 'err');        return; }
+  if (!item)     { toast('Please select or enter the item', 'err'); return; }
   if (!qty || qty < 1) { toast('Quantity must be at least 1', 'err'); return; }
 
   localStorage.setItem('loc',  location);
@@ -558,11 +639,17 @@ async function submitReport() {
     const data   = await res.json();
     if (data.success) {
       toast('Report submitted ✓', 'ok');
-      document.getElementById('f-item').value      = '';
-      document.getElementById('f-qty').value       = '1';
-      document.getElementById('f-qty-wastage').value = '1';
-      document.getElementById('f-notes').value     = '';
-      document.getElementById('f-date').value      = today();
+      if (isWastage) {
+        document.getElementById('f-item-wastage').value  = '';
+        document.getElementById('f-qty-wastage').value   = '1';
+      } else {
+        document.getElementById('f-item-select').value = '';
+        document.getElementById('f-item-other').value  = '';
+        document.getElementById('item-other-wrap').style.display = 'none';
+        document.getElementById('f-qty').value = '1';
+      }
+      document.getElementById('f-notes').value = '';
+      document.getElementById('f-date').value  = today();
     } else {
       toast('Submission failed — try again', 'err');
     }
@@ -575,18 +662,46 @@ async function submitReport() {
 /* ─── Report type switching (manager) ─── */
 function setReportType(type) {
   activeReportType = type;
-  activeChip       = 'All';
   document.getElementById('rtab-breakage').classList.toggle('on', type === 'breakage');
   document.getElementById('rtab-wastage').classList.toggle('on',  type === 'wastage');
-  renderReports();
+  document.getElementById('rtab-stock').classList.toggle('on',    type === 'stock');
+
+  if (type === 'stock') {
+    if (!activeStockLocation) activeStockLocation = CONFIG.LOCATIONS[0];
+    renderChips();
+    loadStock(activeStockLocation);
+  } else {
+    activeChip = 'All';
+    renderChips();
+    renderReports();
+  }
 }
 
-/* ─── Render reports ─── */
+/* ─── Chips (location filters) ─── */
+function renderChips() {
+  const filters = activeReportType === 'stock' ? CONFIG.LOCATIONS : ['All', ...CONFIG.LOCATIONS];
+  const active   = activeReportType === 'stock' ? activeStockLocation : activeChip;
+  document.getElementById('chips').innerHTML = filters.map(f =>
+    `<button class="chip ${active === f ? 'on' : ''}" onclick="setChip('${f}')">${f}</button>`
+  ).join('');
+}
+function setChip(f) {
+  if (activeReportType === 'stock') {
+    activeStockLocation = f;
+    renderChips();
+    loadStock(f);
+  } else {
+    activeChip = f;
+    renderChips();
+    renderReports();
+  }
+}
+
+/* ─── Render Breakage / Wastage reports ─── */
 function renderReports() {
   const isWastage = activeReportType === 'wastage';
   const typeRows  = allRows.filter(r => r[7] === activeReportType);
 
-  // Stats
   const todayStr  = today();
   const todayCt   = typeRows.filter(r => r[0] === todayStr).length;
   document.getElementById('stats').innerHTML = `
@@ -601,13 +716,6 @@ function renderReports() {
       </div>
     </div>`;
 
-  // Location chips
-  const filters = ['All', ...CONFIG.LOCATIONS];
-  document.getElementById('chips').innerHTML = filters.map(f =>
-    `<button class="chip ${activeChip === f ? 'on' : ''}" onclick="setChip('${f}')">${f}</button>`
-  ).join('');
-
-  // Filter by location
   const filtered = activeChip === 'All' ? typeRows : typeRows.filter(r => r[1] === activeChip);
   const sorted   = [...filtered].sort((a, b) => new Date(b[0]) - new Date(a[0]));
   const body     = document.getElementById('report-body');
@@ -643,7 +751,104 @@ function renderReports() {
     </div>`;
 }
 
-function setChip(f) { activeChip = f; renderReports(); }
+/* ─── Stock ─── */
+async function loadStock(location) {
+  document.getElementById('stats').innerHTML = '';
+  const body = document.getElementById('report-body');
+  body.innerHTML = '<div class="empty">Loading stock…</div>';
+  try {
+    const res  = await fetch(`${CONFIG.SCRIPT_URL}?action=getStock&pin=${encodeURIComponent(currentPin)}&location=${encodeURIComponent(location)}`);
+    const data = await res.json();
+    if (data.error) {
+      body.innerHTML = `<div class="empty">${data.error}</div>`;
+      return;
+    }
+    stockDataMap = {};
+    (data.stock || []).forEach(r => { stockDataMap[r[0]] = r[2]; });
+    renderStock(location);
+  } catch (e) {
+    body.innerHTML = '<div class="empty">Connection error loading stock.</div>';
+  }
+}
+
+function renderStock(location) {
+  const items = [...CONFIG.ITEMS];
+  Object.keys(stockDataMap).forEach(it => { if (!items.includes(it)) items.push(it); });
+  stockItemsList = items;
+
+  let tracked = 0, total = 0;
+  items.forEach(it => {
+    if (stockDataMap.hasOwnProperty(it)) {
+      tracked++;
+      total += Number(stockDataMap[it]) || 0;
+    }
+  });
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-n stock">${tracked}</div>
+        <div class="stat-l">Items Tracked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-n stock">${total}</div>
+        <div class="stat-l">Total Units · ${location}</div>
+      </div>
+    </div>`;
+
+  const body = document.getElementById('report-body');
+  body.innerHTML = `
+    <p class="stock-note">Stock levels drop automatically when breakages are reported. Enter the actual count below and tap <strong>Save Stock Take</strong> to correct any item.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="stock-th">Item</th>
+            <th class="stock-th">Current</th>
+            <th class="stock-th">New Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((it, i) => `
+            <tr>
+              <td>${it}</td>
+              <td>${stockDataMap.hasOwnProperty(it) ? stockDataMap[it] : '—'}</td>
+              <td><input type="number" class="stock-input" id="stock-${i}" min="0" placeholder="0" value="${stockDataMap.hasOwnProperty(it) ? stockDataMap[it] : ''}"></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <button class="btn btn-dark" style="margin-top:14px" onclick="saveStockTake('${location}')">Save Stock Take</button>
+  `;
+}
+
+async function saveStockTake(location) {
+  const items = [];
+  stockItemsList.forEach((it, i) => {
+    const el = document.getElementById(`stock-${i}`);
+    if (el && el.value !== '') items.push({ item: it, count: el.value });
+  });
+  if (!items.length) { toast('Enter at least one count', 'err'); return; }
+
+  try {
+    const params = new URLSearchParams({
+      action: 'stockTake',
+      pin: currentPin,
+      location: location,
+      items: JSON.stringify(items)
+    });
+    const res  = await fetch(`${CONFIG.SCRIPT_URL}?${params}`);
+    const data = await res.json();
+    if (data.success) {
+      toast('Stock updated ✓', 'ok');
+      loadStock(location);
+    } else {
+      toast('Update failed — try again', 'err');
+    }
+  } catch (e) {
+    toast('Connection error', 'err');
+  }
+}
 
 /* ─── Helpers ─── */
 function today() { return new Date().toISOString().split('T')[0]; }
