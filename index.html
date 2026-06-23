@@ -423,8 +423,8 @@ tr:last-child td { border-bottom: none; }
       <input type="date" id="f-date">
     </div>
     <div class="field" style="margin-bottom:20px">
-      <label>Notes <span style="font-weight:500;text-transform:none;font-size:11px;letter-spacing:0">(optional)</span></label>
-      <input type="text" id="f-notes" placeholder="Any extra details…">
+      <label>Notes</label>
+      <input type="text" id="f-notes" placeholder="e.g. Expired, Off cuts, Went sour, Broke during prep…">
     </div>
     <button class="btn btn-primary" id="submit-btn" onclick="submitReport()">Submit Report</button>
   </div>
@@ -595,6 +595,7 @@ async function submitReport() {
   if (!reporter) { toast('Please enter your name', 'err');       return; }
   if (!item)     { toast('Please select or enter the item', 'err'); return; }
   if (!qty || qty < 1) { toast('Quantity must be at least 1', 'err'); return; }
+  if (!notes) { toast('Please add a reason in the notes field', 'err'); return; }
 
   localStorage.setItem('loc',  location);
   localStorage.setItem('name', reporter);
