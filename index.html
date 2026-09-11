@@ -672,7 +672,7 @@ function renderReports() {
   const typeRows  = allRows.filter(r => r[7] === activeReportType);
 
   const todayStr  = today();
-  const todayCt   = typeRows.filter(r => r[0] === todayStr).length;
+  const todayCt   = typeRows.filter(r => normalizeDate(r[0]) === todayStr).length;
   document.getElementById('stats').innerHTML = `
     <div class="stats">
       <div class="stat-card">
@@ -835,11 +835,26 @@ async function saveStockTake(location) {
 }
 
 /* ─── Helpers ─── */
-function today() { return new Date().toISOString().split('T')[0]; }
+function today() {
+  const d = new Date();
+  const localMs = d.getTime() - d.getTimezoneOffset() * 60000;
+  return new Date(localMs).toISOString().split('T')[0];
+}
+/* Normalizes any date-ish value (plain "YYYY-MM-DD" or a full timestamp) to a local "YYYY-MM-DD" string. */
+function normalizeDate(d) {
+  if (!d) return '';
+  if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return '';
+  const localMs = dt.getTime() - dt.getTimezoneOffset() * 60000;
+  return new Date(localMs).toISOString().split('T')[0];
+}
 function fmtDate(d) {
   if (!d) return '';
-  try { return new Date(d + 'T12:00:00').toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' }); }
-  catch { return d; }
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d + 'T12:00:00' : d;
+  const dt  = new Date(iso);
+  if (isNaN(dt.getTime())) return d;
+  return dt.toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
 }
 let toastTm;
 function toast(msg, type) {
