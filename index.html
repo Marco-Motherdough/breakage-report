@@ -430,7 +430,21 @@ tr:last-child td { border-bottom: none; }
   </div>
 
   <div class="mgr-link">
+    <button onclick="openStockTake()" id="stocktake-link" style="display:none">📦 Stock Take</button>
+  </div>
+  <div class="mgr-link">
     <button onclick="showPIN()">🔐 Manager View</button>
+  </div>
+</div>
+
+<!-- ════════════ STAFF STOCK TAKE PAGE ════════════ -->
+<div class="page" id="pg-stocktake">
+  <button class="back" onclick="show('pg-submit')">← Back</button>
+  <h2 class="stitle">Stock Take</h2>
+  <div class="chips" id="st-chips"></div>
+  <div id="st-stats"></div>
+  <div class="card">
+    <div id="st-body"></div>
   </div>
 </div>
 
@@ -474,7 +488,9 @@ tr:last-child td { border-bottom: none; }
 /* ─── CONFIG ─── */
 const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyXgICeRg-B3ZyxPBxuhLMgliuzFqp88mWMVgkV9Duh5YUeruXRkI-Z_KdQjUsWmibR/exec',
-  LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery']
+  LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery'],
+  // Set to false to hide the staff "Stock Take" button again once the first count is done.
+  STOCK_TAKE_OPEN: true
 };
 
 /* ─── State ─── */
@@ -502,6 +518,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (savedLoc)  sel.value = savedLoc;
   if (savedName) document.getElementById('f-reporter').value = savedName;
 
+  document.getElementById('stocktake-link').style.display = CONFIG.STOCK_TAKE_OPEN ? '' : 'none';
 });
 
 /* ─── Type switching (submit) ─── */
@@ -826,6 +843,119 @@ async function saveStockTake(location) {
     if (data.success) {
       toast('Stock updated ✓', 'ok');
       loadStock(location);
+    } else {
+      toast('Update failed — try again', 'err');
+    }
+  } catch (e) {
+    toast('Connection error', 'err');
+  }
+}
+
+/* ─── Staff Stock Take (open, no manager PIN) ─── */
+let staffStockLocation  = null;
+let staffStockItemsList = [];
+let staffStockDataMap   = {};
+
+function openStockTake() {
+  staffStockLocation = CONFIG.LOCATIONS[0];
+  renderStaffChips();
+  loadStaffStock(staffStockLocation);
+  show('pg-stocktake');
+}
+
+function renderStaffChips() {
+  document.getElementById('st-chips').innerHTML = CONFIG.LOCATIONS.map(f =>
+    `<button class="chip ${staffStockLocation === f ? 'on' : ''}" onclick="setStaffChip('${f}')">${f}</button>`
+  ).join('');
+}
+function setStaffChip(f) {
+  staffStockLocation = f;
+  renderStaffChips();
+  loadStaffStock(f);
+}
+
+async function loadStaffStock(location) {
+  document.getElementById('st-stats').innerHTML = '';
+  const body = document.getElementById('st-body');
+  body.innerHTML = '<div class="empty">Loading stock…</div>';
+  try {
+    const res  = await fetch(`${CONFIG.SCRIPT_URL}?action=getStock&pin=&location=${encodeURIComponent(location)}`);
+    const data = await res.json();
+    if (data.error) {
+      body.innerHTML = `<div class="empty">${data.error}</div>`;
+      return;
+    }
+    staffStockDataMap = {};
+    (data.stock || []).forEach(r => { staffStockDataMap[r[0]] = r[2]; });
+    renderStaffStock(location);
+  } catch (e) {
+    body.innerHTML = '<div class="empty">Connection error loading stock.</div>';
+  }
+}
+
+function renderStaffStock(location) {
+  const items = Object.keys(staffStockDataMap);
+  staffStockItemsList = items;
+
+  document.getElementById('st-stats').innerHTML = `
+    <div class="stats" style="grid-template-columns:1fr">
+      <div class="stat-card">
+        <div class="stat-n stock">${items.length}</div>
+        <div class="stat-l">Items to Count · ${location}</div>
+      </div>
+    </div>`;
+
+  const body = document.getElementById('st-body');
+
+  if (!items.length) {
+    body.innerHTML = `<div class="empty">No stock items set up yet for ${location}. Ask your manager to add items first.</div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <p class="stock-note">Enter the actual count for each item below, then tap <strong>Save Stock Take</strong>.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="stock-th">Item</th>
+            <th class="stock-th">Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((it, i) => `
+            <tr>
+              <td>${it}</td>
+              <td><input type="number" class="stock-input" id="st-stock-${i}" min="0" placeholder="0"></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <button class="btn btn-dark" style="margin-top:14px" onclick="saveStaffStockTake('${location}')">Save Stock Take</button>
+  `;
+}
+
+async function saveStaffStockTake(location) {
+  const items = [];
+  staffStockItemsList.forEach((it, i) => {
+    const el = document.getElementById(`st-stock-${i}`);
+    if (el && el.value !== '') items.push({ item: it, count: el.value });
+  });
+
+  if (!items.length) { toast('Enter at least one count', 'err'); return; }
+
+  try {
+    const params = new URLSearchParams({
+      action: 'stockTake',
+      pin: '',
+      location: location,
+      items: JSON.stringify(items)
+    });
+    const res  = await fetch(`${CONFIG.SCRIPT_URL}?${params}`);
+    const data = await res.json();
+    if (data.success) {
+      toast('Stock updated ✓', 'ok');
+      loadStaffStock(location);
     } else {
       toast('Update failed — try again', 'err');
     }
