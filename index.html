@@ -490,7 +490,9 @@ const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyXgICeRg-B3ZyxPBxuhLMgliuzFqp88mWMVgkV9Duh5YUeruXRkI-Z_KdQjUsWmibR/exec',
   LOCATIONS:  ['FHK', 'STB', 'JHK', 'Bakery'],
   // Set to false to hide the staff "Stock Take" button again once the first count is done.
-  STOCK_TAKE_OPEN: true
+  STOCK_TAKE_OPEN: true,
+  // Sent automatically by the open staff Stock Take flow so it authenticates against the backend; staff never see it.
+  STOCK_TAKE_PIN: '1234'
 };
 
 /* ─── State ─── */
@@ -879,7 +881,7 @@ async function loadStaffStock(location) {
   const body = document.getElementById('st-body');
   body.innerHTML = '<div class="empty">Loading stock…</div>';
   try {
-    const res  = await fetch(`${CONFIG.SCRIPT_URL}?action=getStock&pin=&location=${encodeURIComponent(location)}`);
+    const res  = await fetch(`${CONFIG.SCRIPT_URL}?action=getStock&pin=${encodeURIComponent(CONFIG.STOCK_TAKE_PIN)}&location=${encodeURIComponent(location)}`);
     const data = await res.json();
     if (data.error) {
       body.innerHTML = `<div class="empty">${data.error}</div>`;
@@ -947,7 +949,7 @@ async function saveStaffStockTake(location) {
   try {
     const params = new URLSearchParams({
       action: 'stockTake',
-      pin: '',
+      pin: CONFIG.STOCK_TAKE_PIN,
       location: location,
       items: JSON.stringify(items)
     });
